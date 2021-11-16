@@ -53,7 +53,7 @@ unsigned char get_sbox(unsigned char p ){
     return out;
 }
 
-unsigned char subcells(unsigned char p)
+unsigned char bit_permutation(unsigned char p)
 {
     unsigned char new_p;
     unsigned char seventh   = (p & 0b10000000)>>7; // x0000000
@@ -80,11 +80,30 @@ unsigned char subcells(unsigned char p)
 }
 
 void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
+    //Copy plaintext to char array
+    unsigned char plain[16] ;
+    memmove(plain,p,16);
+    //Copy tweakkey to array
+     unsigned char key[32] ;
+    memmove(key,k,32);
+    //bit permutation and S-boxes
+    for(int i=0;i<16;i++){
+        for(int r =0;r<4;r++){
+            plain[i] = bit_permutation(plain[i]);
+        }
+        //Swap for x1 and x2 after 4 rounds of permutation
+        unsigned char second    = (plain[i] & 0b00000100)>>2; // 00000x00
+        unsigned char first     = (plain[i] & 0b00000010)>>1; // 000000x0
+        plain[i] = plain[i]|(first<<2)|(second<<1);
+        //S-box substitution
+        plain[i] = get_sbox(plain[i]);
+
+        //Add constant
+        
+    }
 
 
-    unsigned char crypt = *p;
-    //crypt = subcells(crypt);
-    uint8_t sboxout = get_sbox(crypt);
+    
     
 
 }
