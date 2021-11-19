@@ -36,6 +36,11 @@ uint8_t S8 [16][16] = {
 0xe2 ,0xca ,0xee ,0xc6 ,0xcf ,0xe7 ,0xc7 ,0xef ,0xd2 ,0xf2 ,0xde ,0xfe ,0xd7 ,0xf7 ,0xdf ,0xff
 };
 
+uint8_t round_constants [62] = {0x01,0x03,0x07,0x0f,0x1f,0x3e,0x3d,0x3B,0x37,0x2F,0x1E,0x3C,0x39,0x33,0x27,0x0e,
+                                0x1d,0x3a,0x35,0x2B,0x16,0x2C,0x18,0x30,0x21,0x02,0x05,0x0B,0x17,0x2E,0x1C,0x38,
+                                0x31,0x23,0x06,0x0D,0x1B,0x36,0x2D,0x1A,0x34,0x29,0x12,0x24,0x08,0x11,0x22,0x04,
+                                0x09,0x13,0x26,0x0C,0x19,0x32,0x25,0x0A,15,0x2A,0x14,0x28,0x10,0x20};
+
 unsigned char get_sbox(unsigned char p ){
     unsigned char seventh   = (p & 0b10000000)>>7; // x0000000
     unsigned char sixth     = (p & 0b01000000)>>6; // 0x000000
@@ -79,6 +84,13 @@ unsigned char bit_permutation(unsigned char p)
 
 }
 
+unsigned char add_constant(unsigned char p,int round){
+        
+            p = (p|round_constants[round]);
+
+        return p;    
+}
+
 void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     //Copy plaintext to char array
     unsigned char plain[16] ;
@@ -86,6 +98,7 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     //Copy tweakkey to array
      unsigned char key[32] ;
     memmove(key,k,32);
+    int round = 2;
     //bit permutation and S-boxes
     for(int i=0;i<16;i++){
         for(int r =0;r<4;r++){
@@ -96,11 +109,11 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
         unsigned char first     = (plain[i] & 0b00000010)>>1; // 000000x0
         plain[i] = plain[i]|(first<<2)|(second<<1);
         //S-box substitution
-        plain[i] = get_sbox(plain[i]);
-
-        //Add constant
-        
+        plain[i] = get_sbox(plain[i]);  
+         //addConstants EHKÄ!!!!!
+        add_constant(plain[i],round);
     }
+  
 
 
     
