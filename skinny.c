@@ -91,6 +91,15 @@ unsigned char add_constant(unsigned char p,int round){
         return p;    
 }
 
+unsigned char add_round_tweakey(unsigned char key[], unsigned char plain[])
+{   
+   for(int i=0;i<=16;i++)
+           plain[i] = plain[i]^key[i]^key[16+i]^key[32+i];
+
+
+}
+
+
 void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     //Copy plaintext to char array
     unsigned char plain[16] ;
@@ -98,7 +107,10 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     //Copy tweakkey to array
      unsigned char key[32] ;
     memmove(key,k,32);
+
+
     int round = 2;
+
     //bit permutation and S-boxes
     for(int i=0;i<16;i++){
         for(int r =0;r<4;r++){
@@ -111,12 +123,11 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
         //S-box substitution
         plain[i] = get_sbox(plain[i]);  
          //addConstants EHKÄ!!!!!
-        add_constant(plain[i],round);
+        plain[i] = add_constant(plain[i],round);
     }
-  
+    add_round_tweakey(key,plain);
 
 
-    
     
 
 }
