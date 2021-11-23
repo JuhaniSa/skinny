@@ -91,7 +91,7 @@ unsigned char add_constant(unsigned char p,int round){
         return p;    
 }
 
-unsigned char add_round_tweakey(unsigned char key[], unsigned char plain[])
+void add_round_tweakey(unsigned char key[], unsigned char plain[])
 {   
    for(int i=0;i<=16;i++)
            plain[i] = plain[i]^key[i]^key[16+i]^key[32+i];
@@ -99,14 +99,24 @@ unsigned char add_round_tweakey(unsigned char key[], unsigned char plain[])
 
 }
 
+void tweakey_schedule(unsigned char temp[])
+{
+    unsigned char new[48] = 
+       {temp[9],   temp[15],   temp[8],   temp[13],   temp[10],   temp[14],   temp[12],   temp[11],   temp[0],   temp[1],   temp[2],   temp[3],   temp[4],   temp[5],   temp[6],   temp[7],
+        temp[16+9],temp[16+15],temp[16+8],temp[16+13],temp[16+10],temp[16+14],temp[16+12],temp[16+11],temp[16+0],temp[16+1],temp[16+2],temp[16+3],temp[16+4],temp[16+5],temp[16+6],temp[16+7],
+        temp[32+9],temp[32+15],temp[32+8],temp[32+13],temp[32+10],temp[32+14],temp[32+12],temp[32+11],temp[32+0],temp[32+1],temp[32+2],temp[32+3],temp[32+4],temp[32+5],temp[32+6],temp[32+7]};
+
+        memmove(temp,new,48);
+
+}
 
 void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     //Copy plaintext to char array
     unsigned char plain[16] ;
     memmove(plain,p,16);
     //Copy tweakkey to array
-     unsigned char key[32] ;
-    memmove(key,k,32);
+     unsigned char key[48] ;
+    memmove(key,k,48);
 
 
     int round = 2;
@@ -126,6 +136,9 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
         plain[i] = add_constant(plain[i],round);
     }
     add_round_tweakey(key,plain);
+    tweakey_schedule(key);
+
+
 
 
     
