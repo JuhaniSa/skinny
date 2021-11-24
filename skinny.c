@@ -117,10 +117,7 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     //Copy tweakkey to array
      unsigned char key[48] ;
     memmove(key,k,48);
-
-
     int round = 2;
-
     //bit permutation and S-boxes
     for(int i=0;i<16;i++){
         for(int r =0;r<4;r++){
@@ -137,7 +134,7 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     }
     add_round_tweakey(key,plain);
     tweakey_schedule(key);
-
+    //TESTI
 
 
 
