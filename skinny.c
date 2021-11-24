@@ -134,7 +134,7 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     }
     add_round_tweakey(key,plain);
     tweakey_schedule(key);
-    //TESTI
+    //Jeeeii
 
 
 
