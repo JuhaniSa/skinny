@@ -54,7 +54,7 @@ unsigned char get_sbox(unsigned char p ){
     unsigned char y = ((seventh<<3)|(sixth<<2)|(first<<1)|(zero<<0));
     // x = 5432
     unsigned char x = (fifth<<3)|(fourth<<2)|(third<<1)|(second<<0);
-    uint8_t out = S8[y-1][x-1];
+    uint8_t out = S8[y-1][x-1]; // En ymmärrä
     return out;
 }
 
@@ -106,6 +106,17 @@ void tweakey_schedule(unsigned char temp[])
         temp[16+9],temp[16+15],temp[16+8],temp[16+13],temp[16+10],temp[16+14],temp[16+12],temp[16+11],temp[16+0],temp[16+1],temp[16+2],temp[16+3],temp[16+4],temp[16+5],temp[16+6],temp[16+7],
         temp[32+9],temp[32+15],temp[32+8],temp[32+13],temp[32+10],temp[32+14],temp[32+12],temp[32+11],temp[32+0],temp[32+1],temp[32+2],temp[32+3],temp[32+4],temp[32+5],temp[32+6],temp[32+7]};
 
+        memmove(temp,new,48); // En ymmärrä
+
+}
+
+void shift_rows(unsigned char temp[]){
+    unsigned char new[16] = 
+       {temp[0],   temp[1],   temp[2],   temp[3],
+        temp[7],   temp[4],   temp[5],   temp[6],
+        temp[10],   temp[11],   temp[8],   temp[9],
+        temp[13],   temp[14],   temp[15],   temp[12]};
+
         memmove(temp,new,48);
 
 }
@@ -148,8 +159,7 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     }
     add_round_tweakey(key,plain);
     tweakey_schedule(key);
-    //TESTI
-
+    //Jeeeii
 
 
     
