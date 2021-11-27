@@ -51,7 +51,7 @@ unsigned char get_sbox(unsigned char p ){
     unsigned char first     = (p & 0b00000010)>>1; // 000000x0
     unsigned char zero      = (p & 0b00000001)>>0; // 0000000x
     // y = 7610
-    unsigned char y = ((seventh<<3)|(sixth<<2)|(first<<1)|(zero<<0));
+    unsigned char y = (seventh<<3)|(sixth<<2)|(first<<1)|(zero<<0);
     // x = 5432
     unsigned char x = (fifth<<3)|(fourth<<2)|(third<<1)|(second<<0);
     uint8_t out = S8[y][x]; // En ymmärrä
@@ -60,25 +60,29 @@ unsigned char get_sbox(unsigned char p ){
 
 unsigned char bit_permutation(unsigned char p)
 {
-    unsigned char new_p;
-    unsigned char seventh   = (p & 0b10000000)>>7; // x0000000
-    unsigned char sixth     = (p & 0b01000000)>>6; // 0x000000
-    unsigned char fifth     = (p & 0b00100000)>>5; // 00x00000 
-    unsigned char fourth    = (p & 0b00010000)>>4; // 000x0000
-    unsigned char third     = (p & 0b00001000)>>3; // 0000x000
-    unsigned char second    = (p & 0b00000100)>>2; // 00000x00
-    unsigned char first     = (p & 0b00000010)>>1; // 000000x0
-    unsigned char zero      = (p & 0b00000001)>>0; // 0000000x
+    unsigned char new_p = p;
+    for(int r = 0;r<4;r++){
+        unsigned char seventh   = (new_p & 0b10000000)>>7; // x0000000
+        unsigned char sixth     = (new_p & 0b01000000)>>6; // 0x000000
+        unsigned char fifth     = (new_p & 0b00100000)>>5; // 00x00000 
+        unsigned char fourth    = (new_p & 0b00010000)>>4; // 000x0000
+        unsigned char third     = (new_p & 0b00001000)>>3; // 0000x000
+        unsigned char second    = (new_p & 0b00000100)>>2; // 00000x00
+        unsigned char first     = (new_p & 0b00000010)>>1; // 000000x0
+        unsigned char zero      = (new_p & 0b00000001)>>0; // 0000000x
+        
+        unsigned char temp = ~(seventh|sixth)&0b00000001; 
+        unsigned char im4 = fourth^(temp);
+        unsigned char temp2 = ~(third|second)&0b00000001; 
+        unsigned char im0 = zero^(temp2);
 
-    //intermediate x4 and x0
-    unsigned char temp = ~(seventh|sixth)&0b00000001; 
-    unsigned char im4 = fourth^(temp);
-    unsigned char temp2 = ~(third|second)&0b00000001; 
-    unsigned char im0 = zero^(temp2);
-
-    //new order
-    new_p = (second<<7)|(first<<6)|(seventh<<5)|(sixth<<4)|(im4<<3)|(im0<<2)|(third<<1)|(fifth);
-
+        if(r == 3){
+            new_p = (seventh<<7)|(sixth<<6)|(fifth<<5)|(fourth<<4)|(third<<3)|(second<<2)|(zero<<1)|(first);
+        }
+        else{
+            new_p = (second<<7)|(first<<6)|(seventh<<5)|(sixth<<4)|(im4<<3)|(im0<<2)|(third<<1)|(fifth);
+        }
+    }
     return new_p;
 
 
@@ -94,8 +98,8 @@ void add_constant(unsigned char plain[],int round){
         unsigned char second    = (rc & 0b00000100)>>2; // 00000x00
         unsigned char first     = (rc & 0b00000010)>>1; // 000000x0
         unsigned char zero      = (rc & 0b00000001)>>0; // 0000000x
-        uint8_t c0 = (0b00000000|(third<<3)|(second<<2)|(first<<1)|zero);
-        uint8_t c1 = (0b00000000|(fifth<<1)|(fourth));
+        uint8_t c0 = (0|(third<<3)|(second<<2)|(first<<1)|zero);
+        uint8_t c1 = (0|(fifth<<1)|(fourth));
         uint8_t c2 = 0x2;
         plain[0] = plain[0]^c0;
         plain[4] = plain[4]^c1;
@@ -120,7 +124,7 @@ void tweakey_schedule(unsigned char temp[]){
         temp[16+9],temp[16+15],temp[16+8],temp[16+13],temp[16+10],temp[16+14],temp[16+12],temp[16+11],temp[16+0],temp[16+1],temp[16+2],temp[16+3],temp[16+4],temp[16+5],temp[16+6],temp[16+7],
         temp[32+9],temp[32+15],temp[32+8],temp[32+13],temp[32+10],temp[32+14],temp[32+12],temp[32+11],temp[32+0],temp[32+1],temp[32+2],temp[32+3],temp[32+4],temp[32+5],temp[32+6],temp[32+7]};
 
-        for(int i =0;i<16;i++){
+        for(int i = 0;i<16;i++){
         unsigned char p = new[16+i];
         unsigned char new_p;
         unsigned char seventh   = (p & 0b10000000)>>7; // x0000000
@@ -134,7 +138,7 @@ void tweakey_schedule(unsigned char temp[]){
         new_p = ((sixth<<7)|(fifth<<6)|(fourth<<5)|(third<<4)|(second<<3)|(first<<2)|(zero<<1)|(seventh^fifth));
         new[16+i] = new_p;       
     }
-    for(int i =0;i<16;i++){
+    for(int i = 0;i<16;i++){
         unsigned char p = new[16*2+i];
         unsigned char new_p;
         unsigned char seventh   = (p & 0b10000000)>>7; // x0000000
@@ -179,7 +183,8 @@ void mix_columns(unsigned char temp[])
 }
 
 void sub_cells(unsigned char temp[])
-{
+{   
+    
     unsigned char new[16];
     for(int i=0;i<16;i++){
         new[i] = get_sbox(temp[i]);
@@ -196,7 +201,7 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
      unsigned char key[48] ;
     memmove(key,k,48);
 
-    for(int round=0;round<56;round++)
+    for(int round = 0;round<56;round++)
     {
     sub_cells(plain);//ok
     add_constant(plain,round);//ok
