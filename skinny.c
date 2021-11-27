@@ -170,12 +170,12 @@ void shift_rows(unsigned char temp[])
 
 void mix_columns(unsigned char temp[])
 {
-    unsigned char new[4][4];
+    unsigned char new[16];
     for(int i = 0;i<4;i++){
-        new[0][i] = temp[i]^temp[8+i]^temp[12+i];
-        new[1][i] = temp[i]; 
-        new[2][i] = temp[4+i]^temp[8+i];
-        new[3][i] = temp[i]^temp[8+i];
+        new[0 + i] = temp[i]^temp[8+i]^temp[12+i];
+        new[4 + i] = temp[i]; 
+        new[8 + i] = temp[4+i]^temp[8+i];
+        new[12 + i] = temp[i]^temp[8+i];
 
     }
     memcpy(temp,new,16);
