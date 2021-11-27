@@ -112,10 +112,6 @@ void add_round_tweakey(unsigned char key[], unsigned char plain[])
            plain[c+r*4] = plain[c+r*4]^key[c+4*r]^key[c+4*r+16]^key[c+4*r+32];
        }
    }
-
-           
-
-
 }
 
 void tweakey_schedule(unsigned char temp[]){
@@ -185,7 +181,6 @@ void mix_columns(unsigned char temp[])
 void sub_cells(unsigned char temp[])
 {
     unsigned char new[16];
-    unsigned char testi [16];
     for(int i=0;i<16;i++){
         new[i] = get_sbox(temp[i]);
     }
