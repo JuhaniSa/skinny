@@ -54,7 +54,7 @@ unsigned char get_sbox(unsigned char p ){
     unsigned char y = ((seventh<<3)|(sixth<<2)|(first<<1)|(zero<<0));
     // x = 5432
     unsigned char x = (fifth<<3)|(fourth<<2)|(third<<1)|(second<<0);
-    uint8_t out = S8[y-1][x-1]; // En ymmärrä
+    uint8_t out = S8[y][x]; // En ymmärrä
     return out;
 }
 
@@ -84,46 +84,93 @@ unsigned char bit_permutation(unsigned char p)
 
 }
 
-unsigned char add_constant(unsigned char p,int round){
+void add_constant(unsigned char plain[],int round){
         
-            p = (p|round_constants[round]);
+        unsigned char new[16];
+        uint8_t rc = round_constants[round];
+        unsigned char fifth     = (rc & 0b00100000)>>5; // 00x00000 
+        unsigned char fourth    = (rc & 0b00010000)>>4; // 000x0000
+        unsigned char third     = (rc & 0b00001000)>>3; // 0000x000
+        unsigned char second    = (rc & 0b00000100)>>2; // 00000x00
+        unsigned char first     = (rc & 0b00000010)>>1; // 000000x0
+        unsigned char zero      = (rc & 0b00000001)>>0; // 0000000x
+        uint8_t c0 = (0b00000000|(third<<3)|(second<<2)|(first<<1)|zero);
+        uint8_t c1 = (0b00000000|(fifth<<1)|(fourth));
+        uint8_t c2 = 0x2;
+        plain[0] = plain[0]^c0;
+        plain[4] = plain[4]^c1;
+        plain[8] = plain[8]^c2;
 
-        return p;    
-}
+
+    }
+
 
 void add_round_tweakey(unsigned char key[], unsigned char plain[])
 {   
-   for(int i=0;i<=16;i++)
-           plain[i] = plain[i]^key[i]^key[16+i]^key[32+i];
+   for(int r=0;r<=1;r++){
+       for(int c=0;c<=3;c++){
+           plain[c+r*4] = plain[c+r*4]^key[c+4*r]^key[c+4*r+16]^key[c+4*r+32];
+       }
+   }
+
+           
 
 
 }
 
-void tweakey_schedule(unsigned char temp[])
-{
+void tweakey_schedule(unsigned char temp[]){
     unsigned char new[48] = 
        {temp[9],   temp[15],   temp[8],   temp[13],   temp[10],   temp[14],   temp[12],   temp[11],   temp[0],   temp[1],   temp[2],   temp[3],   temp[4],   temp[5],   temp[6],   temp[7],
         temp[16+9],temp[16+15],temp[16+8],temp[16+13],temp[16+10],temp[16+14],temp[16+12],temp[16+11],temp[16+0],temp[16+1],temp[16+2],temp[16+3],temp[16+4],temp[16+5],temp[16+6],temp[16+7],
         temp[32+9],temp[32+15],temp[32+8],temp[32+13],temp[32+10],temp[32+14],temp[32+12],temp[32+11],temp[32+0],temp[32+1],temp[32+2],temp[32+3],temp[32+4],temp[32+5],temp[32+6],temp[32+7]};
 
-        memmove(temp,new,48); // En ymmärrä
+        for(int i =0;i<16;i++){
+        unsigned char p = new[16+i];
+        unsigned char new_p;
+        unsigned char seventh   = (p & 0b10000000)>>7; // x0000000
+        unsigned char sixth     = (p & 0b01000000)>>6; // 0x000000
+        unsigned char fifth     = (p & 0b00100000)>>5; // 00x00000 
+        unsigned char fourth    = (p & 0b00010000)>>4; // 000x0000
+        unsigned char third     = (p & 0b00001000)>>3; // 0000x000
+        unsigned char second    = (p & 0b00000100)>>2; // 00000x00
+        unsigned char first     = (p & 0b00000010)>>1; // 000000x0
+        unsigned char zero      = (p & 0b00000001)>>0; // 0000000x
+        new_p = ((sixth<<7)|(fifth<<6)|(fourth<<5)|(third<<4)|(second<<3)|(first<<2)|(zero<<1)|(seventh^fifth));
+        new[16+i] = new_p;       
+    }
+    for(int i =0;i<16;i++){
+        unsigned char p = new[16*2+i];
+        unsigned char new_p;
+        unsigned char seventh   = (p & 0b10000000)>>7; // x0000000
+        unsigned char sixth     = (p & 0b01000000)>>6; // 0x000000
+        unsigned char fifth     = (p & 0b00100000)>>5; // 00x00000 
+        unsigned char fourth    = (p & 0b00010000)>>4; // 000x0000
+        unsigned char third     = (p & 0b00001000)>>3; // 0000x000
+        unsigned char second    = (p & 0b00000100)>>2; // 00000x00
+        unsigned char first     = (p & 0b00000010)>>1; // 000000x0
+        unsigned char zero      = (p & 0b00000001)>>0; // 0000000x
+        new_p = (((zero^sixth)<<7)|(seventh<<6)|(sixth<<5)|(fifth<<4)|(fourth<<3)|(third<<2)|(second<<1)|(first));
+        new[16*2+i] = new_p;
+    
+    }
+    memcpy(temp,new,48); 
+
 
 }
 
-void shift_rows(unsigned char temp[]){
-    unsigned char new[16] = 
-       {temp[0],   temp[1],   temp[2],   temp[3],
-        temp[7],   temp[4],   temp[5],   temp[6],
-        temp[10],   temp[11],   temp[8],   temp[9],
-        temp[13],   temp[14],   temp[15],   temp[12]};
-
-        memmove(temp,new,48);
-
-}
-
-void shift_rows(unsigned char* temp)
+void shift_rows(unsigned char temp[])
 {
-    unsigned new[4][4];
+    unsigned char new[16] = {temp[0],   temp[1],   temp[2],   temp[3],
+                             temp[7],   temp[4],   temp[5],   temp[6],
+                             temp[10],  temp[11],  temp[8],   temp[9],
+                             temp[13],  temp[14],  temp[15],  temp[12]};
+
+        memcpy(temp,new,16);
+}
+
+void mix_columns(unsigned char temp[])
+{
+    unsigned char new[4][4];
     for(int i = 0;i<4;i++){
         new[0][i] = temp[i]^temp[8+i]^temp[12+i];
         new[1][i] = temp[i]; 
@@ -131,8 +178,19 @@ void shift_rows(unsigned char* temp)
         new[3][i] = temp[i]^temp[8+i];
 
     }
+    memcpy(temp,new,16);
 
+}
 
+void sub_cells(unsigned char temp[])
+{
+    unsigned char new[16];
+    unsigned char testi [16];
+    for(int i=0;i<16;i++){
+        new[i] = get_sbox(temp[i]);
+    }
+    memcpy(temp,new,16);
+    
 }
 
 void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
@@ -142,26 +200,19 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     //Copy tweakkey to array
      unsigned char key[48] ;
     memmove(key,k,48);
-    int round = 2;
-    //bit permutation and S-boxes
-    for(int i=0;i<16;i++){
-        for(int r =0;r<4;r++){
-            plain[i] = bit_permutation(plain[i]);
-        }
-        //Swap for x1 and x2 after 4 rounds of permutation
-        unsigned char second    = (plain[i] & 0b00000100)>>2; // 00000x00
-        unsigned char first     = (plain[i] & 0b00000010)>>1; // 000000x0
-        plain[i] = plain[i]|(first<<2)|(second<<1);
-        //S-box substitution
-        plain[i] = get_sbox(plain[i]);  
-         //addConstants EHKÄ!!!!!
-        plain[i] = add_constant(plain[i],round);
-    }
-    add_round_tweakey(key,plain);
+
+    for(int round=0;round<56;round++)
+    {
+    sub_cells(plain);//ok
+    add_constant(plain,round);//ok
+    add_round_tweakey(key,plain);//ok
     tweakey_schedule(key);
-    //Jeeeii
-
-
+    shift_rows(plain);
+    mix_columns(plain);
+    
+    }
+    
+    memcpy(c,plain,16);
     
 
 }
