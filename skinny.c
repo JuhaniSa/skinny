@@ -42,19 +42,9 @@ uint8_t round_constants [62] = {0x01,0x03,0x07,0x0f,0x1f,0x3e,0x3d,0x3B,0x37,0x2
                                 0x09,0x13,0x26,0x0C,0x19,0x32,0x25,0x0A,15,0x2A,0x14,0x28,0x10,0x20};
 
 unsigned char get_sbox(unsigned char p ){
-    unsigned char seventh   = (p & 0b10000000)>>7; // x0000000
-    unsigned char sixth     = (p & 0b01000000)>>6; // 0x000000
-    unsigned char fifth     = (p & 0b00100000)>>5; // 00x00000 
-    unsigned char fourth    = (p & 0b00010000)>>4; // 000x0000
-    unsigned char third     = (p & 0b00001000)>>3; // 0000x000
-    unsigned char second    = (p & 0b00000100)>>2; // 00000x00
-    unsigned char first     = (p & 0b00000010)>>1; // 000000x0
-    unsigned char zero      = (p & 0b00000001)>>0; // 0000000x
-    // y = 7610
-    unsigned char y = (seventh<<3)|(sixth<<2)|(first<<1)|(zero<<0);
-    // x = 5432
-    unsigned char x = (fifth<<3)|(fourth<<2)|(third<<1)|(second<<0);
-    uint8_t out = S8[y][x]; // En ymmärrä
+    uint8_t y_cord = (p &0xF0)>>4;
+    uint8_t x_cord = (p&0x0f);
+    uint8_t out = S8[y_cord][x_cord];
     return out;
 }
 
@@ -71,13 +61,14 @@ unsigned char bit_permutation(unsigned char p)
         unsigned char first     = (new_p & 0b00000010)>>1; // 000000x0
         unsigned char zero      = (new_p & 0b00000001)>>0; // 0000000x
         
+        
         unsigned char temp = ~(seventh|sixth)&0b00000001; 
         unsigned char im4 = fourth^(temp);
         unsigned char temp2 = ~(third|second)&0b00000001; 
         unsigned char im0 = zero^(temp2);
 
         if(r == 3){
-            new_p = (seventh<<7)|(sixth<<6)|(fifth<<5)|(fourth<<4)|(third<<3)|(second<<2)|(zero<<1)|(first);
+            new_p = (seventh<<7)|(sixth<<6)|(fifth<<5)|(fourth<<4)|(third<<3)|(first<<2)|(second<<1)|(zero);
         }
         else{
             new_p = (second<<7)|(first<<6)|(seventh<<5)|(sixth<<4)|(im4<<3)|(im0<<2)|(third<<1)|(fifth);
@@ -88,7 +79,7 @@ unsigned char bit_permutation(unsigned char p)
 
 }
 
-void add_constant(unsigned char plain[],int round){
+void add_constant(unsigned char plain[],uint8_t round){
         
         unsigned char new[16];
         uint8_t rc = round_constants[round];
@@ -98,8 +89,8 @@ void add_constant(unsigned char plain[],int round){
         unsigned char second    = (rc & 0b00000100)>>2; // 00000x00
         unsigned char first     = (rc & 0b00000010)>>1; // 000000x0
         unsigned char zero      = (rc & 0b00000001)>>0; // 0000000x
-        uint8_t c0 = (0|(third<<3)|(second<<2)|(first<<1)|zero);
-        uint8_t c1 = (0|(fifth<<1)|(fourth));
+        uint8_t c0 = (0b00000000|(third<<3)|(second<<2)|(first<<1)|zero);
+        uint8_t c1 = (0b00000000|(fifth<<1)|(fourth));
         uint8_t c2 = 0x2;
         plain[0] = plain[0]^c0;
         plain[4] = plain[4]^c1;
