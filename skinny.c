@@ -104,6 +104,11 @@ void add_round_tweakey(unsigned char key[], unsigned char plain[])
 {   
    for(int r=0;r<=1;r++){
        for(int c=0;c<=3;c++){
+           uint8_t plain_ = plain[c+r*4];
+           uint8_t TK1 = key[c+4*r];
+           uint8_t TK2 = key[c+4*r+16];
+           uint8_t TK3 = key[c+4*r+32];
+           uint8_t ans = plain_^TK1^TK2^TK3;
            plain[c+r*4] = plain[c+r*4]^key[c+4*r]^key[c+4*r+16]^key[c+4*r+32];
        }
    }
@@ -115,7 +120,7 @@ void tweakey_schedule(unsigned char temp[]){
         temp[16+9],temp[16+15],temp[16+8],temp[16+13],temp[16+10],temp[16+14],temp[16+12],temp[16+11],temp[16+0],temp[16+1],temp[16+2],temp[16+3],temp[16+4],temp[16+5],temp[16+6],temp[16+7],
         temp[32+9],temp[32+15],temp[32+8],temp[32+13],temp[32+10],temp[32+14],temp[32+12],temp[32+11],temp[32+0],temp[32+1],temp[32+2],temp[32+3],temp[32+4],temp[32+5],temp[32+6],temp[32+7]};
 
-        for(int i = 0;i<16;i++){
+        for(int i = 0;i<8;i++){
         unsigned char p = new[16+i];
         unsigned char new_p;
         unsigned char seventh   = (p & 0b10000000)>>7; // x0000000
@@ -126,10 +131,11 @@ void tweakey_schedule(unsigned char temp[]){
         unsigned char second    = (p & 0b00000100)>>2; // 00000x00
         unsigned char first     = (p & 0b00000010)>>1; // 000000x0
         unsigned char zero      = (p & 0b00000001)>>0; // 0000000x
-        new_p = ((sixth<<7)|(fifth<<6)|(fourth<<5)|(third<<4)|(second<<3)|(first<<2)|(zero<<1)|(seventh^fifth));
+        unsigned char tmp       = seventh^fifth;
+        new_p = ((sixth<<7)|(fifth<<6)|(fourth<<5)|(third<<4)|(second<<3)|(first<<2)|(zero<<1)|(tmp));
         new[16+i] = new_p;       
     }
-    for(int i = 0;i<16;i++){
+    for(int i = 0;i<8;i++){
         unsigned char p = new[16*2+i];
         unsigned char new_p;
         unsigned char seventh   = (p & 0b10000000)>>7; // x0000000
@@ -140,9 +146,9 @@ void tweakey_schedule(unsigned char temp[]){
         unsigned char second    = (p & 0b00000100)>>2; // 00000x00
         unsigned char first     = (p & 0b00000010)>>1; // 000000x0
         unsigned char zero      = (p & 0b00000001)>>0; // 0000000x
-        new_p = (((zero^sixth)<<7)|(seventh<<6)|(sixth<<5)|(fifth<<4)|(fourth<<3)|(third<<2)|(second<<1)|(first));
+        unsigned char tmp       = zero^sixth;
+        new_p = (((tmp)<<7)|(seventh<<6)|(sixth<<5)|(fifth<<4)|(fourth<<3)|(third<<2)|(second<<1)|(first));
         new[16*2+i] = new_p;
-    
     }
     memcpy(temp,new,48); 
 
@@ -200,7 +206,6 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
     tweakey_schedule(key);
     shift_rows(plain);
     mix_columns(plain);
-    
     }
     
     memcpy(c,plain,16);
@@ -209,3 +214,4 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
 }
 
 
+A
