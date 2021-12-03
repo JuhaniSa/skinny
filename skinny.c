@@ -4,9 +4,10 @@
 /**
  * SKINNY-128-384 block cipher encryption.
  * Under 48-byte tweakey at k, encrypt 16-byte plaintext at p and store the 16-byte output at c.
- * Names: Riku Anttila & Juhani Sankari 
+* Names: Riku Anttila & Juhani Sankari 
  * Program that encrypts given char array using the SKINNY-128-384 block cipher
  * encryption algorithm.
+
  */
 
 uint8_t S8 [16][16] = {
@@ -42,36 +43,6 @@ unsigned char get_sbox(unsigned char p ){
     return out;
 }
 
-unsigned char bit_permutation(unsigned char p)
-{
-    unsigned char new_p = p;
-    for(int r = 0;r<4;r++){
-        unsigned char seventh   = (new_p & 0b10000000)>>7; // x0000000
-        unsigned char sixth     = (new_p & 0b01000000)>>6; // 0x000000
-        unsigned char fifth     = (new_p & 0b00100000)>>5; // 00x00000 
-        unsigned char fourth    = (new_p & 0b00010000)>>4; // 000x0000
-        unsigned char third     = (new_p & 0b00001000)>>3; // 0000x000
-        unsigned char second    = (new_p & 0b00000100)>>2; // 00000x00
-        unsigned char first     = (new_p & 0b00000010)>>1; // 000000x0
-        unsigned char zero      = (new_p & 0b00000001)>>0; // 0000000x
-        
-        
-        unsigned char temp = ~(seventh|sixth)&0b00000001; 
-        unsigned char im4 = fourth^(temp);
-        unsigned char temp2 = ~(third|second)&0b00000001; 
-        unsigned char im0 = zero^(temp2);
-
-        if(r == 3){
-            new_p = (seventh<<7)|(sixth<<6)|(fifth<<5)|(fourth<<4)|(third<<3)|(first<<2)|(second<<1)|(zero);
-        }
-        else{
-            new_p = (second<<7)|(first<<6)|(seventh<<5)|(sixth<<4)|(im4<<3)|(im0<<2)|(third<<1)|(fifth);
-        }
-    }
-    return new_p;
-
-
-}
 
 void add_constant(unsigned char plain[],uint8_t round){
         
@@ -89,8 +60,6 @@ void add_constant(unsigned char plain[],uint8_t round){
         plain[0] = plain[0]^c0;
         plain[4] = plain[4]^c1;
         plain[8] = plain[8]^c2;
-
-
     }
 
 
@@ -104,8 +73,8 @@ void add_round_tweakey(unsigned char key[], unsigned char plain[])
            uint8_t TK3 = key[c+4*r+32];
            uint8_t ans = plain_^TK1^TK2^TK3;
            plain[c+r*4] = plain[c+r*4]^key[c+4*r]^key[c+4*r+16]^key[c+4*r+32];
-       }
-   }
+        }
+    }
 }
 
 void tweakey_schedule(unsigned char temp[]){
@@ -156,7 +125,7 @@ void shift_rows(unsigned char temp[])
                              temp[10],  temp[11],  temp[8],   temp[9],
                              temp[13],  temp[14],  temp[15],  temp[12]};
 
-        memcpy(temp,new,16);
+    memcpy(temp,new,16);
 }
 
 void mix_columns(unsigned char temp[])
@@ -170,7 +139,6 @@ void mix_columns(unsigned char temp[])
 
     }
     memcpy(temp,new,16);
-
 }
 
 void sub_cells(unsigned char temp[])
@@ -181,7 +149,6 @@ void sub_cells(unsigned char temp[])
         new[i] = get_sbox(temp[i]);
     }
     memcpy(temp,new,16);
-    
 }
 
 void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
@@ -194,15 +161,14 @@ void skinny(unsigned char *c, const unsigned char *p, const unsigned char *k) {
 
     for(int round = 0;round<56;round++)
     {
-    sub_cells(plain);//ok
-    add_constant(plain,round);//ok
-    add_round_tweakey(key,plain);//ok
-    tweakey_schedule(key);
-    shift_rows(plain);
-    mix_columns(plain);
+        sub_cells(plain);
+        add_constant(plain,round);
+        add_round_tweakey(key,plain);
+        tweakey_schedule(key);
+        shift_rows(plain);
+        mix_columns(plain);
     }
-    
     memcpy(c,plain,16);
-    
 
 }
+
